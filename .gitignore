@@ -1,1 +1,6 @@
 lib
+.DS_Store
+*.swp
+*.swo
+node_modules/*
+npm-debug.log
