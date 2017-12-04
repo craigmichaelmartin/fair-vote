@@ -57,7 +57,7 @@ const getWinner = (ballots) => {
           received: leader.count
         });
       }
-      if (ballot.length !== 1) {
+      if (ballot.length !== 1 && ballot[0] !== leader.name) {
         winners.push(getWinner([
           ...ballots.slice(0, index),
           ballot.slice(1),
@@ -69,7 +69,7 @@ const getWinner = (ballots) => {
           return w;
         } else if (w.received === accum.received) {
           if (accum.received !== w.received) {
-            throw new Error('hmm, ties with different counts received. is this possible?');
+            throw new Error('hmm, ties with different counts received. is this possible??');
           }
           return Object.assign({}, accum, {
             winner: [...new Set([...accum.winner, ...w.winner])]
@@ -83,12 +83,15 @@ const getWinner = (ballots) => {
       return winner[0];
     } else if (winner.length > 1) {
       return winner.reduce((accum, w) => {
-        if (accum.received !== w.received) {
-          throw new Error('hmm, ties with different counts received. is this possible?');
+        if (accum.received === w.received) {
+          return Object.assign({}, accum, {
+            winner: [...new Set([...accum.winner, ...w.winner])]
+          });
+        } else if (w.received > accum.received) {
+          return w;
+        } else {
+          return accum;
         }
-        return Object.assign({}, accum, {
-          winner: [...new Set([...accum.winner, ...w.winner])]
-        });
       });
     } else {
       throw new Error('must be a winner so missing backup logic..');
