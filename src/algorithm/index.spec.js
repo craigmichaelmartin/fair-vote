@@ -210,7 +210,7 @@ describe('Winning:', () => {
     });
   });
 
-  test('respects order - fallbacks only used from losing votes; EVEN IN MINORTY', () => {
+  test('respects order - fallbacks only used from losing votes; EVEN IN MINORITY', () => {
     // Would early flip instead of win if algorithm wrong
     expect(getWinner([
       ['cruz'],
@@ -269,6 +269,58 @@ describe('Winning:', () => {
 
     // Notice: In the second round, carson was not chosen because fallback
     // choices are only evaluated from the losing voters' choices.
+    expect(getWinner([
+      ['cruz'],
+      ['rubio', 'carson'],
+      ['bush', 'cruz'],
+      ['bush', 'rubio'],
+      ['bush', 'rubio'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['carson', 'trump'],
+      ['carson', 'trump']
+    ])).toEqual({
+      success: true,
+      winner: ['trump'],
+      received: 6,
+      total: 11,
+      percentage: 54.55
+    });
+
+
+    // Not a tie
+    // This is similiar to the below "Geeze" example's final stage.
+    // Unrelated, doesn't end with 100%. Should it? No - losers votes
+    // should remain their highest choice? Yes - reconcile the votes
+    // to the winner. Show both percentages, I suppose.
+    expect(getWinner([
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['carson', 'trump'],
+      ['carson', 'trump']
+    ])).toEqual({
+      success: true,
+      winner: ['trump'],
+      received: 4,
+      total: 6,
+      percentage: 66.67
+    });
+
+
+    // Geeze.
+    // Trump is winning in first round with 4.
+    // Carson does not beat him because fallbacks only counted from loser.
+    // However, Rubio does beat him in the second round (with 5).
+    // This could mistakenly "free up" the trump/carson votes to be either
+    // order in the quest to try to beat rubio.
+    // Trump should win this. Not a Trump/Carson tie.
+    //
+    // Need logic to figure out who has more higher votes relative to tie
+    // candiates (not all)
     expect(getWinner([
       ['rubio'],
       ['rubio', 'carson'],
