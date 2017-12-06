@@ -16,6 +16,10 @@ describe('Ties:', () => {
   });
 
   test('more advanced form of a tie', () => {
+    // Teachable Example
+    // List others are backups, not point earn.
+    // Oppositely, listing backups don't weaken the former.
+    // Each ballot distills to one equal vote.
     expect(getWinner([
       ['rubio', 'cruz'],
       ['cruz', 'rubio'],
@@ -43,6 +47,55 @@ describe('Ties:', () => {
       received: 2,
       total: 4,
       percentage: 50.00
+    });
+  });
+
+  test('two way tie handled correctly (not take into account fallback)', () => {
+    // Important one. Mistakenly had rubio winning previously.
+    expect(getWinner([
+      ['rubio'],
+      ['rubio'],
+      ['cruz', 'rubio'],
+      ['cruz'],
+      ['clinton']
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'cruz'],
+      received: 2,
+      total: 5,
+      percentage: 40.00
+    });
+
+    expect(getWinner([
+      ['rubio', 'bush'],
+      ['rubio', 'bush'],
+      ['rubio', 'bush'],
+      ['trump', 'bush'],
+      ['trump', 'bush'],
+      ['trump', 'bush'],
+      ['bush'],
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'trump'],
+      received: 3,
+      total: 7,
+      percentage: 42.86
+    });
+
+    expect(getWinner([
+      ['rubio', 'bush'],
+      ['rubio', 'bush'],
+      ['rubio', 'bush'],
+      ['trump', 'rubio'],
+      ['trump', 'rubio'],
+      ['trump', 'rubio'],
+      ['bush'],
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'trump'],
+      received: 3,
+      total: 7,
+      percentage: 42.86
     });
   });
 
@@ -87,24 +140,6 @@ describe('Winning:', () => {
       ['rubio'],
       ['rubio'],
       ['kasich'],
-      ['clinton']
-    ])).toEqual({
-      success: true,
-      winner: ['rubio'],
-      received: 3,
-      total: 5,
-      percentage: 60.00
-    });
-  });
-
-  test('signifance of all vote slots', () => {
-    // Rather than being a tie between rubio and cruz, since person 3
-    // gave rubio as an acceptable vote, rubio is the winner
-    expect(getWinner([
-      ['rubio'],
-      ['rubio'],
-      ['cruz', 'rubio'],
-      ['cruz'],
       ['clinton']
     ])).toEqual({
       success: true,
@@ -175,8 +210,40 @@ describe('Winning:', () => {
     });
   });
 
-  /*
   test('respects order - fallbacks only used from losing votes; EVEN IN MINORTY', () => {
+    // Would early flip instead of win if algorithm wrong
+    expect(getWinner([
+      ['cruz'],
+      ['cruz'],
+      ['kasich', 'cruz'],
+      ['kasich'],
+      ['kasich'],
+      ['bush'],
+      ['bush']
+    ])).toEqual({
+      success: true,
+      winner: ['kasich'],
+      received: 3,
+      total: 7,
+      percentage: 42.86
+    });
+
+    // Would early flip if algorithm wrong
+    expect(getWinner([
+      ['cruz'],
+      ['cruz'],
+      ['kasich', 'cruz'],
+      ['kasich'],
+      ['kasich'],
+      ['bush'],
+    ])).toEqual({
+      success: true,
+      winner: ['kasich'],
+      received: 3,
+      total: 6,
+      percentage: 50.00
+    });
+
     // Notice: Rubio does not win because fallback
     // choices are only evaulated from the losing voter's choices.
     // More challenging version of the previous test:
@@ -222,7 +289,7 @@ describe('Winning:', () => {
       percentage: 54.55
     });
   });
-  */
+
 
   test('advanced: flips twice', () => {
     /*

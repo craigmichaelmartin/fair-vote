@@ -57,13 +57,19 @@ const getWinner = (ballots) => {
           received: leader.count
         });
       }
-      if (ballot.length !== 1 && ballot[0] !== leader.name) {
-        winners.push(getWinner([
-          ...ballots.slice(0, index),
-          ballot.slice(1),
-          ...ballots.slice(index + 1)
-        ]));
+      if (ballot.length !== 1
+        && (
+          leader.name.indexOf(ballot[0]) === -1
+          || leader.name.length === ballots.length
+        )
+      ) {
+          winners.push(getWinner([
+            ...ballots.slice(0, index),
+            ballot.slice(1),
+            ...ballots.slice(index + 1)
+          ]));
       }
+      // todo: winners.length > 0 && winners.reduce without if/else, void 0
       return winners.reduce((accum, w) => {
         if (!accum || w.received > (accum.received || -Infinity)) {
           return w;
@@ -94,7 +100,12 @@ const getWinner = (ballots) => {
         }
       });
     } else {
-      throw new Error('must be a winner so missing backup logic..');
+      // throw new Error('must be a winner so missing backup logic..');
+      return {
+        success: true,
+        winner: leader.name,
+        received: leader.count
+      };
     }
     /*
     ballots.forEach((ballot, index) => {
