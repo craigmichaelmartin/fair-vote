@@ -1,7 +1,20 @@
 const getWinner = require('./index').getWinner;
 
+
+
 describe('Ties:', () => {
   test('simple tie (backward compatible with standard voting methodology)', () => {
+    expect(getWinner([
+      ['rubio'],
+      ['cruz'],
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'cruz'],
+      received: 1,
+      total: 2,
+      percentage: 50.00
+    });
+
     expect(getWinner([
       ['rubio'],
       ['cruz'],
@@ -15,27 +28,63 @@ describe('Ties:', () => {
     });
   });
 
-  test('more advanced form of a tie', () => {
-    // Teachable Example
-    // List others are backups, not point earn.
-    // Oppositely, listing backups don't weaken the former.
-    // Each ballot distills to one equal vote.
+  test('fallback vote doesn\'t mistakenly get the vote for the tie', () => {
+    expect(getWinner([
+      ['rubio'],
+      ['cruz'],
+      ['clinton', 'bush']
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'cruz', 'clinton'],
+      received: 1,
+      total: 3,
+      percentage: 33.33
+    });
+  });
+
+  test('advanced sequence', () => {
+    // THIS TEST AND THE NEXT TOGETHER SHOW LIMITS
+
+    // A fallback vote should cost your candidate their chance to win (tie)
+    expect(getWinner([
+      ['rubio'],
+      ['cruz'],
+      ['clinton', 'cruz']
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'cruz', 'clinton'],
+      received: 1,
+      total: 3,
+      percentage: 33.33
+    });
+
+    // Geeze.
+    // Three way tie??
+    // {"percentage": 33.33, "received": 1, "success": true, "total": 3, "winner": ["rubio", "cruz", "clinton"]}
+    // or cruz/rubio win??
+    // {"percentage": 66.67, "received": 2, "success": true, "total": 3, "winner": ["cruz", "rubio"]}
+    // THOUGHT
+    // I think rubio / cruz should win
+    // Especially look at the next expect testcase
+    // OLD THOUGHT
+    // -- I think three way tie.
+    // -- "A fallback vote shouldn't cost your candidate their chance of winning"
+    // -- True, but each ballot must distill to exactly one vote.
+    // -- The fallback vote doesn't cost the candidate, still wins (ties).
+    // -- This is, though, the closest this methodology comes to reneging on "never splits the vote"
+    // -- It doesn't though. Their candidate still wins (via tie) but allows another to also win.
     expect(getWinner([
       ['rubio', 'cruz'],
       ['cruz', 'rubio'],
       ['clinton']
     ])).toEqual({
       success: true,
-      winner: ['cruz', 'rubio'],
+      winner: ['rubio', 'cruz'],
       received: 2,
       total: 3,
-      percentage: 66.67
+      percentage: 33.33
     });
-  });
 
-  test('even more advanced form of a tie', () => {
-    // Teachable Example
-    // Not weighted ranking. True votes.
     expect(getWinner([
       ['rubio', 'cruz'],
       ['cruz', 'rubio'],
@@ -48,10 +97,45 @@ describe('Ties:', () => {
       total: 4,
       percentage: 50.00
     });
+
+    // Not Cruz
+    expect(getWinner([
+      ['rubio', 'cruz'],
+      ['rubio', 'cruz'],
+      ['cruz', 'rubio'],
+      ['clinton'],
+      ['clinton'],
+      ['clinton']
+    ])).toEqual({
+      success: true,
+      winner: ['rubio', 'clinton'],
+      received: 2,
+      total: 4,
+      percentage: 50.00
+    });
+
+  });
+
+  test('tie showing: not weighted ranks, but true vote', () => {
+    // Teachable Example
+    // Not weighted ranking. True votes.
+    expect(getWinner([
+      ['rubio'],
+      ['cruz', 'rubio'],
+      ['clinton'],
+      ['clinton']
+    ])).toEqual({
+      success: true,
+      winner: ['clinton', 'rubio'],
+      received: 2,
+      total: 4,
+      percentage: 50.00
+    });
   });
 
   test('two way tie handled correctly (not take into account fallback)', () => {
     // Important one. Mistakenly had rubio winning previously.
+    // Fallback vote should not cost your candidate their chance to win (tie)
     expect(getWinner([
       ['rubio'],
       ['rubio'],
@@ -308,6 +392,26 @@ describe('Winning:', () => {
       received: 4,
       total: 6,
       percentage: 66.67
+    });
+    // Ensures get "trueLeader"
+    expect(getWinner([
+      ['a'],
+      ['a'],
+      ['a'],
+      ['a'],
+      ['a'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['trump', 'carson'],
+      ['carson', 'trump'],
+      ['carson', 'trump']
+    ])).toEqual({
+      success: true,
+      winner: ['trump'],
+      received: 6,
+      total: 11,
+      percentage: 54.55
     });
 
 

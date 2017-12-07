@@ -6,8 +6,9 @@ const getCounts = (ballots) => {
   }, {});
 };
 
-const getLeader = (ballots) => {
-  const counts = getCounts(ballots);
+// Input:
+//  - counts: obj { [name]: count }
+const getLeadersFromCounts = (counts) => {
   return Object.keys(counts).reduce((accum, name) => {
     const count = counts[name];
     if (count > (accum.count || -Infinity)) {
@@ -17,6 +18,28 @@ const getLeader = (ballots) => {
     }
     return accum;
   }, {});
+};
+
+// Returns leader object with winner(s) in leader.name array
+// If there is more than one name, it was a tie, in the
+// strict (literal, traditional) sense
+const getLeader = (ballots) => {
+  const counts = getCounts(ballots);
+  return getLeadersFromCounts(counts);
+  // const countsOfWinners = getCountsOfWinners(ballots, leaders);
+  // return getLeadersFromCounts(countsOfWinners);
+};
+
+const handleWinnersReducer = (accum, w) => {
+  if (w.received === accum.received) {
+    return Object.assign({}, accum, {
+      winner: [...new Set([...accum.winner, ...w.winner])]
+    });
+  } else if (w.received > accum.received) {
+    return w;
+  } else {
+    return accum;
+  }
 };
 
 const getWinner = (ballots) => {
@@ -57,48 +80,51 @@ const getWinner = (ballots) => {
           received: leader.count
         });
       }
-      if (ballot.length !== 1
-        && (
-          leader.name.indexOf(ballot[0]) === -1
-          || leader.name.length === ballots.length
-        )
-      ) {
+      if (ballot.length !== 1) {
+        // Current leader is not at top of ballot's names
+        if (leader.name.indexOf(ballot[0]) === -1) {
           winners.push(getWinner([
             ...ballots.slice(0, index),
             ballot.slice(1),
             ...ballots.slice(index + 1)
           ]));
-      }
-      // todo: winners.length > 0 && winners.reduce without if/else, void 0
-      return winners.reduce((accum, w) => {
-        if (!accum || w.received > (accum.received || -Infinity)) {
-          return w;
-        } else if (w.received === accum.received) {
-          if (accum.received !== w.received) {
-            throw new Error('hmm, ties with different counts received. is this possible??');
-          }
-          return Object.assign({}, accum, {
-            winner: [...new Set([...accum.winner, ...w.winner])]
-          });
+        // Current leader is at top, but a tied leader is also under it
+        } else if (ballot.slice(1).some(n => leader.name.indexOf(n) >= 0)) {
+                // new Set([...ballot.slice(1), ...leader.name]).size !== [...ballots.slice(1), ...leader.name].length
+                // leader.name.length === ballots.length
+          winners.push(getWinner([
+            ...ballots.slice(0, index),
+            ballot.slice(1).filter(n => leader.name.indexOf(n) >= 0),
+            ...ballots.slice(index + 1)
+          ]));
         }
-        return accum;
-      }, void 0);
+      }
+      return winners.length > 0 && winners.reduce(handleWinnersReducer);
     }).filter(a => !!a);
 
-    if (winner.length === 1) {
-      return winner[0];
-    } else if (winner.length > 1) {
-      return winner.reduce((accum, w) => {
-        if (accum.received === w.received) {
-          return Object.assign({}, accum, {
-            winner: [...new Set([...accum.winner, ...w.winner])]
-          });
-        } else if (w.received > accum.received) {
-          return w;
-        } else {
-          return accum;
+    if (winner.length > 0) {
+      const winners = winner.reduce(handleWinnersReducer);
+      // find "true" winner: who has more higher votes relative to
+      // each other (not all))
+      const foo = ballots.reduce((accum, ballot) => {
+        const name = ballot[0];
+        const count = accum[name] || 0;
+        if (
+          winners.winner.indexOf(name) >= 0
+          && ballot.slice(1).some(n => winners.winner.indexOf(n) >= 0)
+        ) {
+          return Object.assign({}, accum, {[name]: count + 1});
         }
-      });
+        return accum;
+      }, {});
+      if (Object.keys(foo).length) {
+        const trueWinners = getLeadersFromCounts(foo).name; // we don't care about inner count
+        return Object.assign({}, winners, { winner: trueWinners });
+      } else {
+        return winners;
+      }
+      // return winner.reduce(handleWinnersReducer);
+
     } else {
       // throw new Error('must be a winner so missing backup logic..');
       return {
@@ -130,3 +156,4 @@ const main = (ballots) => {
 };
 
 module.exports.getWinner = main;
+module.exports.getLeader = getLeader;
