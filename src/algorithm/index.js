@@ -42,6 +42,28 @@ const handleWinnersReducer = (accum, w) => {
   }
 };
 
+const getTrueWinnersFromWinners = (winners, ballots) => {
+  // find "true" winner: who has more higher votes relative to
+  // each other (not all))
+  const foo = ballots.reduce((accum, ballot) => {
+    const name = ballot[0];
+    const count = accum[name] || 0;
+    if (
+      winners.winner.indexOf(name) >= 0
+      && ballot.slice(1).some(n => winners.winner.indexOf(n) >= 0)
+    ) {
+      return Object.assign({}, accum, {[name]: count + 1});
+    }
+    return accum;
+  }, {});
+  if (Object.keys(foo).length) {
+    const trueWinners = getLeadersFromCounts(foo).name; // we don't care about inner count
+    return Object.assign({}, winners, { winner: trueWinners });
+  } else {
+    return winners;
+  }
+};
+
 const getWinner = (ballots) => {
   debugger;
 
@@ -99,50 +121,26 @@ const getWinner = (ballots) => {
           ]));
         }
       }
-      return winners.length > 0 && winners.reduce(handleWinnersReducer);
+      // Don't think I need getTrueWinnersFromWinners since I think all ties
+      // will be "strict"/"traditional" at this point.
+      return winners.length > 0 && getTrueWinnersFromWinners(
+        winners.reduce(handleWinnersReducer),
+        ballots
+      );
     }).filter(a => !!a);
 
     if (winner.length > 0) {
-      const winners = winner.reduce(handleWinnersReducer);
-      // find "true" winner: who has more higher votes relative to
-      // each other (not all))
-      const foo = ballots.reduce((accum, ballot) => {
-        const name = ballot[0];
-        const count = accum[name] || 0;
-        if (
-          winners.winner.indexOf(name) >= 0
-          && ballot.slice(1).some(n => winners.winner.indexOf(n) >= 0)
-        ) {
-          return Object.assign({}, accum, {[name]: count + 1});
-        }
-        return accum;
-      }, {});
-      if (Object.keys(foo).length) {
-        const trueWinners = getLeadersFromCounts(foo).name; // we don't care about inner count
-        return Object.assign({}, winners, { winner: trueWinners });
-      } else {
-        return winners;
-      }
-      // return winner.reduce(handleWinnersReducer);
-
+      return getTrueWinnersFromWinners(
+        winner.reduce(handleWinnersReducer),
+        ballots
+      );
     } else {
-      // throw new Error('must be a winner so missing backup logic..');
       return {
         success: true,
         winner: leader.name,
         received: leader.count
       };
     }
-    /*
-    ballots.forEach((ballot, index) => {
-      if (ballot.length === 1) {
-        return getWinner([
-          ...ballots.slice(0, index),
-          ...ballots.slice(index + 1)
-        ]);
-      }
-    });
-    */
   }
 };
 
