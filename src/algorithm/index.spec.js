@@ -90,7 +90,7 @@ describe('Ties:', () => {
         winner: ['rubio', 'cruz'],
         received: 2,
         total: 3,
-        percentage: 33.33
+        percentage: 66.67
       });
     });
 
@@ -103,7 +103,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winner: ['clinton', 'cruz', 'rubio'],
+        winner: ['clinton', 'rubio', 'cruz'],
         received: 2,
         total: 4,
         percentage: 50.00
@@ -111,7 +111,7 @@ describe('Ties:', () => {
     });
 
     // Not Cruz
-    test('4', () => {
+    test('4.0', () => {
       expect(getWinner([
         ['rubio', 'cruz'],
         ['rubio', 'cruz'],
@@ -121,10 +121,75 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winner: ['rubio', 'clinton'],
-        received: 2,
-        total: 4,
+        winner: ['clinton', 'rubio'],
+        received: 3,
+        total: 6,
         percentage: 50.00
+      });
+    });
+    // Not Cruz (again)
+    test('4.1', () => {
+      expect(getWinner([
+        ['rubio', 'cruz'],
+        ['rubio', 'cruz'],
+        ['cruz', 'rubio'],
+        ['clinton'],
+        ['clinton'],
+        ['sanders', 'clinton']
+      ])).toEqual({
+        success: true,
+        winner: ['clinton', 'rubio'],
+        received: 3,
+        total: 6,
+        percentage: 50.00
+      });
+    });
+    // Not Cruz (again)
+    test('4.2', () => {
+      expect(getWinner([
+        ['rubio', 'cruz'],
+        ['rubio', 'cruz'],
+        ['cruz', 'rubio'],
+        ['clinton'],
+        ['clinton'],
+        ['clinton', 'cruz']
+      ])).toEqual({
+        success: true,
+        winner: ['clinton', 'rubio'],
+        received: 3,
+        total: 6,
+        percentage: 50.00
+      });
+    });
+    // Not Cruz (again)
+    test('4.3', () => {
+      expect(getWinner([
+        ['rubio', 'cruz'],
+        ['rubio', 'cruz'],
+        ['cruz', 'rubio'],
+        ['clinton'],
+        ['clinton'],
+        ['clinton', 'rubio']
+      ])).toEqual({
+        success: true,
+        winner: ['clinton', 'rubio'],
+        received: 3,
+        total: 6,
+        percentage: 50.00
+      });
+    });
+
+    test('5', () => {
+      expect(getWinner([
+        ['rubio', 'cruz'],
+        ['cruz', 'clinton'],
+        ['clinton', 'rubio'],
+      ])).toEqual({
+        success: true,
+        winner: ['rubio', 'cruz', 'clinton'],
+        received: 2,
+        total: 3,
+        percentage: 66.67
       });
     });
   });
@@ -140,7 +205,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winner: ['clinton', 'rubio'],
+        winner: ['rubio', 'clinton'],
         received: 2,
         total: 4,
         percentage: 50.00
@@ -215,7 +280,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winner: ['clinton', 'rubio'],
+        winner: ['rubio', 'clinton'],
         received: 2,
         total: 4,
         percentage: 50.00
