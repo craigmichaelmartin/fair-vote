@@ -560,6 +560,35 @@ describe('Winning:', () => {
 
 
   describe('advanced: flips twice', () => {
+    // Not a flip twice, just trying to help understand why "1" below is failing
+    // Geesh, I suppose "A fallback vote should not cost your candidate their
+    // chance to win (tie)". But then it seems like "trump" split "carson"s
+    // vote. Or no, because it was successful..
+    test('0', () => {
+      expect(getWinner([
+        ['rubio'],
+        ['rubio'],
+        ['rubio'],
+        ['trump', 'carson'],
+        ['trump', 'carson'],
+        ['trump', 'carson'],
+        ['carson'],
+        ['carson']
+      ])).toEqual({
+        success: true,
+        winner: ['rubio', 'trump'],
+        received: 3,
+        total: 8,
+        percentage: 37.50
+      });
+    });
+
+    // Here, there are not more "carson"s than "trumps", so "carson"
+    // is never chosen because "trump" can "win", and so the honor
+    // is given to him
+
+    // Thus: below is INCORRECT. Trump can tie rubio and so does.
+    // "It's not splitting the vote if you 'win'"
     /*
       rubio    bush    bush    trump   trump   trump   carson    carson
       carson   rubio   rubio   carson  carson  carson  rubio     trump
@@ -573,10 +602,29 @@ describe('Winning:', () => {
 
       rubio    bush    bush    trump   trump   trump   CARSON    CARSON
       carson   rubio   rubio   CARSON  CARSON  CARSON  rubio     trump
+
+      (Interestingly, Carson doesn't get the vote from the first person,
+      since Rubio is the leader at that point)
+      Ending ballots would look like:
+      [['rubio', 'carson'], ['rubio'], ['rubio'], ['carson'], ['carson'], ['carson'], ['carson', 'rubio'], ['carson', 'trump']]
     */
-    // Interestingly, Carson doesn't get the vote from the first person
-    // [['rubio', 'carson'], ['rubio'], ['rubio'], ['carson'], ['carson'], ['carson'], ['carson', 'rubio'], ['carson', 'trump']]
-    fit('1', () => {
+
+    // Below is CORRECT:
+    /*
+      rubio    bush    bush    trump   trump   trump   carson    carson
+      carson   rubio   rubio   carson  carson  carson  rubio     trump
+      -----------------------------------------------------------------
+
+      rubio    bush    bush    TRUMP   TRUMP   TRUMP   carson    carson
+      carson   rubio   rubio   carson  carson  carson  rubio     trump
+
+      RUBIO    bush    bush    trump   trump   trump   carson    carson
+      carson   RUBIO   RUBIO   carson  carson  carson  RUBIO     trump
+
+      RUBIO    bush    bush    TRUMP   TRUMP   TRUMP   carson    carson
+      carson   RUBIO   RUBIO   carson  carson  carson  RUBIO     TRUMP
+    */
+    test('1', () => {
       expect(getWinner([
         ['rubio', 'carson'],
         ['bush', 'rubio'],
@@ -588,10 +636,14 @@ describe('Winning:', () => {
         ['carson', 'trump']
       ])).toEqual({
         success: true,
-        winner: ['carson'],
-        received: 5,
+        winner: ['rubio', 'trump'],
+        received: 4,
         total: 8,
-        percentage: 62.50
+        percentage: 50.00
+        // winner: ['carson'],
+        // received: 5,
+        // total: 8,
+        // percentage: 62.50
       });
     });
   });

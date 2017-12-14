@@ -26,40 +26,10 @@ const getLeadersFromCounts = (counts) => {
 const getLeader = (ballots) => {
   const counts = getCounts(ballots);
   return getLeadersFromCounts(counts);
-  // const countsOfWinners = getCountsOfWinners(ballots, leaders);
-  // return getLeadersFromCounts(countsOfWinners);
 };
 
 // Consolates many winner objects into any array of as few as possible
 const handleWinnersReducer = (accum, w) => {
-  // if (w.received === accum.received) {
-  //   if (w.received.condition === void 0 && accum.received.condition !== void 0) {
-  //     return w;
-  //   } else if (w.received.condition !== void 0 && accum.received.condition === void 0) {
-  //     return accum;
-  //   } else if (w.received.condition === void 0 && accum.received.condition === void 0) {
-  //     return Object.assign({}, accum, {
-  //       winner: [...new Set([...accum.winner, ...w.winner])]
-  //     });
-  //   } else {
-  //     return Object.assign({}, accum, {
-  //       winner: [...new Set([...accum.winner, ...w.winner])],
-  //       condition: [...accum.condition, ...w.condition]
-  //     });
-  //   }
-  // }
-
-  // OR,
-  // if (w.received === accum.received) {
-  //   return Object.assign({}, accum, {
-  //     winner: [...new Set([...accum.winner, ...w.winner])],
-  //     condition: w.condition && w.condition.length
-  //       ? [...(accum.condition || []), ...w.condition]
-  //       : void 0
-  //   });
-  // }
-
-  // debugger;
   const leadingNumber = accum.length ? accum[0].received || 0 : 0;
   let newAccum = [];
   if (w.received === leadingNumber) {
@@ -101,23 +71,6 @@ const handleWinnersReducer = (accum, w) => {
     return accum;
   }
 };
-
-// I think I need to return multiple winner objs up above,
-// rather than combining conditions.
-// I assumed, the simpler handlerWinnersReducer wouldn't
-// need any conditions logic so went to break it out,
-// but it appears like it does?
-// Wait, why did I think that? It's good on its own, i think...
-//
-// Or up above, if a candidate has no condition, void out the whole
-// condition concept (by setting to false or null) and then don't
-// add conditions for it if it is so set...
-// but what about two winners who tied, one of which has condition?
-// This makes me think i can't reduce to one winner obj, but to an array
-// (one for each candidate whose condition logic follows what I just
-// described.
-// Any that have no condition (or a false/null one) could then be
-// reduced into one if desired.
 
 const simpleHandleWinnersReducer = (accum, w) => {
   if (w.received === accum.received) {
@@ -186,7 +139,7 @@ const ensureCanWin = (r, i, arr) => {
     })
   });
   if (!s.winner.length) {
-    // console.log('WINNER NOT CHOSE:', r);
+    // console.log('WINNER NOT CHOSEN:', r);
     return void 0;
     // debugger;
     // throw new Error('i think i need to recurse on this function if the winner couldnt have won, toss him out and go again?');
@@ -209,6 +162,12 @@ const getTrueWinnerObjFromArrayOfWinnerObjs = (arrayOfWinnerObjs, ballots) => {
 const getWinner = (ballots) => {
 
   const leader = getLeader(ballots);
+
+  // console.log('------------')
+  // console.log(JSON.stringify(ballots));
+  // console.log(leader);
+  // console.log('------------')
+
 
   // If no ballots, fail
   if (!ballots.length) {
@@ -286,6 +245,18 @@ const getWinner = (ballots) => {
       if (maybeWinners.length) {
         return maybeWinners.reduce(simpleHandleWinnersReducer);
       }
+
+      // const inners = [].concat(...winner.map(x => [...x.winner]));
+      // console.log('_inners', inners);
+      // return getWinner(
+      //   ballots.map(ballot =>
+      //     ballot.filter(name =>
+      //       inners.indexOf(name) === -1
+      //     )
+      //   ).filter(x => x && x.length)
+      // );
+
+
       // Should I be recursing on the other winners here
       // before falling back to returning leader stats?
     }
