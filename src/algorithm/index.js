@@ -139,10 +139,7 @@ const ensureCanWin = (r, i, arr) => {
     })
   });
   if (!s.winner.length) {
-    // console.log('WINNER NOT CHOSEN:', r);
     return void 0;
-    // debugger;
-    // throw new Error('i think i need to recurse on this function if the winner couldnt have won, toss him out and go again?');
   }
   delete s.condition;
   return s;
@@ -151,10 +148,6 @@ const ensureCanWin = (r, i, arr) => {
 const getTrueWinnerObjFromArrayOfWinnerObjs = (arrayOfWinnerObjs, ballots) => {
   const rawWinnerObjs = arrayOfWinnerObjs.reduce(handleWinnersReducer, []);
   const winnerObjs = rawWinnerObjs.map(ensureCanWin).filter(Boolean);
-  if (!winnerObjs.length) {
-    // console.log('winner objs', arrayOfWinnerObjs.map(x => JSON.stringify(x)));
-    // console.log('ballots', ballots);
-  }
   return winnerObjs;
 };
 
@@ -162,12 +155,6 @@ const getTrueWinnerObjFromArrayOfWinnerObjs = (arrayOfWinnerObjs, ballots) => {
 const getWinner = (ballots) => {
 
   const leader = getLeader(ballots);
-
-  // console.log('------------')
-  // console.log(JSON.stringify(ballots));
-  // console.log(leader);
-  // console.log('------------')
-
 
   // If no ballots, fail
   if (!ballots.length) {
@@ -192,10 +179,7 @@ const getWinner = (ballots) => {
 
   // If no winner, recursively traverse to seek one
   else {
-    // debugger;
-    // console.log('--------------------------------------------------------');
     const winner = ballots.map((ballot, index) => {
-    // debugger;
       const winners = [];
       // If current state has a tie, return it as part of the finding process
       // why not `leader.count === ballots.length / leader.name.length` ?
@@ -245,20 +229,6 @@ const getWinner = (ballots) => {
       if (maybeWinners.length) {
         return maybeWinners.reduce(simpleHandleWinnersReducer);
       }
-
-      // const inners = [].concat(...winner.map(x => [...x.winner]));
-      // console.log('_inners', inners);
-      // return getWinner(
-      //   ballots.map(ballot =>
-      //     ballot.filter(name =>
-      //       inners.indexOf(name) === -1
-      //     )
-      //   ).filter(x => x && x.length)
-      // );
-
-
-      // Should I be recursing on the other winners here
-      // before falling back to returning leader stats?
     }
     return {
       success: true,
@@ -270,8 +240,6 @@ const getWinner = (ballots) => {
 
 const main = (ballots) => {
   let result = getWinner(ballots);
-  console.log('main result', result);
-  debugger;
   result = ensureOnlyTrueWinnersGivenTies(result, ballots);
   result.total = ballots.length;
   if (result.success) {
