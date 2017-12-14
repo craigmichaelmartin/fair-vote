@@ -1,5 +1,7 @@
 {
   "name": "fair-vote",
+  "author": "Craig Martin",
+  "license": "MIT",
   "version": "1.0.0",
   "description": "A path forward for elections",
   "main": "lib/algorithm/index.js",
@@ -23,8 +25,6 @@
     "js:test": "jest",
     "js:test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --verbose"
   },
-  "author": "",
-  "license": "ISC",
   "babel": {
     "presets": [
       "env"
