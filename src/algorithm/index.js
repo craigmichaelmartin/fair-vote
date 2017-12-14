@@ -242,6 +242,7 @@ const main = (ballots) => {
   let result = getWinner(ballots);
   result = ensureOnlyTrueWinnersGivenTies(result, ballots);
   result.total = ballots.length;
+  result.winner = result.winner.slice().sort();
   if (result.success) {
     result.percentage = +(result.received / result.total * 100).toFixed(2);
   }
