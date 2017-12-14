@@ -1,3 +1,6 @@
+const intersection = (a, b) => a.some(n => b.indexOf(n) >= 0);
+// const intersection = (a, b) => new Set([...a, ...b]).size !== [...a, ...b].length;
+
 const getCounts = (ballots) => {
   return ballots.reduce((accum, ballot) => {
     const name = ballot[0];
@@ -84,45 +87,6 @@ const simpleHandleWinnersReducer = (accum, w) => {
   }
 };
 
-// being attentive of ties in which one candidate
-// has more votes relative to another candidate.
-// Accepts array of winner objects, and ballots.
-// Returns single winner object
-// a, a, a, a, (b, c), (b, c), (b, c), (c, b), (c, b) ==> b alone
-// a, a, (b, c), (c, b) ==> a, b, c
-const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
-  const winners = [];
-
-  // If anyone is not behind another winning candidate at all,
-  // they are safe (pass on clear and free to winners list)
-  const counts = ballots.reduce((accum, ballot) => {
-    // Find first winner on a ballot
-    const winner = ballot.find(name => winnerObj.names.indexOf(name) >= 0);
-    if (!winner) {
-      // If no winner, a losers ballot, continue on
-      return accum;
-    }
-    return Object.assign({}, accum, {[winner]: (accum[winner] || 0) + 1});
-  }, {});
-  // If anyone has the votes clear and free, they get added
-  winners.push(...Object.keys(counts).filter(name => {
-    return counts[name] >= winnerObj.received;
-  }));
-
-  // After that, whoever has (or is tied with) the most first place votes
-  // is added
-  const highest = Object.keys(counts).reduce((high, name) => {
-    return high > counts[name] || counts[name] === winnerObj.received
-      ? high
-      : counts[name];
-  }, 0);
-  winners.push(...Object.keys(counts).filter(name => {
-    return counts[name] >= highest;
-  }));
-
-  return Object.assign({}, winnerObj, {names: [...new Set(winners)]});
-};
-
 // Handles "condition" property
 // todo: what about chained dependency? eg, trump on carson, carson on bush
 const ensureCanWin = (r, i, arr) => {
@@ -163,7 +127,7 @@ const getWinner = (ballots) => {
     };
   }
 
-  // If winner, return winner object
+  // If outright winner, return winner object
   // If tie, handled in the else traversal
   else if (
     leader.count > ballots.length / 2 ||
@@ -176,7 +140,7 @@ const getWinner = (ballots) => {
     };
   }
 
-  // If no winner, recursively traverse to seek one
+  // If no outright winner, recursively traverse to seek one
   else {
     const winners = ballots.map((ballot, index) => {
       const iterationWinners = [];
@@ -200,10 +164,7 @@ const getWinner = (ballots) => {
         // Current leader is at top, but a tied leader is also under it
         // Allow fallbacks to be considered (but never at cost to the candidate)
         // to protect against splitting the vote
-        } else if (ballot.slice(1).some(n => leader.names.indexOf(n) >= 0)) {
-                // new Set([...ballot.slice(1), ...leader.names]).size !== [...ballots.slice(1), ...leader.names].length
-                // leader.names.length === ballots.length
-
+        } else if (intersection(ballot.slice(1), leader.names)) {
           const maybeWinner = getWinner([
             ...ballots.slice(0, index),
             ballot.slice(1).filter(n => leader.names.indexOf(n) >= 0),
@@ -217,7 +178,7 @@ const getWinner = (ballots) => {
         }
       }
       return iterationWinners.length > 0 && iterationWinners.reduce(simpleHandleWinnersReducer);
-    }).filter(a => !!a);
+    }).filter(Boolean);
 
     if (winners.length > 0) {
       const validatedWinners = getTrueWinners(winners);
@@ -232,6 +193,46 @@ const getWinner = (ballots) => {
     };
   }
 };
+
+// being attentive of ties in which one candidate
+// has more votes relative to another candidate.
+// Accepts array of winner objects, and ballots.
+// Returns single winner object
+// a, a, a, a, (b, c), (b, c), (b, c), (c, b), (c, b) ==> b alone
+// a, a, (b, c), (c, b) ==> a, b, c
+const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
+  const winners = [];
+
+  // If anyone is not behind another winning candidate at all,
+  // they are safe (pass on clear and free to winners list)
+  const counts = ballots.reduce((accum, ballot) => {
+    // Find first winner on a ballot
+    const winner = ballot.find(name => winnerObj.names.indexOf(name) >= 0);
+    if (!winner) {
+      // If no winner, a losers ballot, continue on
+      return accum;
+    }
+    return Object.assign({}, accum, {[winner]: (accum[winner] || 0) + 1});
+  }, {});
+  // If anyone has the votes clear and free, they get added
+  winners.push(...Object.keys(counts).filter(name => {
+    return counts[name] >= winnerObj.received;
+  }));
+
+  // After that, whoever has (or is tied with) the most first place votes
+  // is added
+  const highest = Object.keys(counts).reduce((high, name) => {
+    return high > counts[name] || counts[name] === winnerObj.received
+      ? high
+      : counts[name];
+  }, 0);
+  winners.push(...Object.keys(counts).filter(name => {
+    return counts[name] >= highest;
+  }));
+
+  return Object.assign({}, winnerObj, {names: [...new Set(winners)]});
+};
+
 
 const main = (ballots) => {
   let result = getWinner(ballots);
