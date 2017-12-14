@@ -33,8 +33,8 @@ const handleWinnersReducer = (accum, w) => {
   const leadingNumber = accum.length ? accum[0].received || 0 : 0;
   let newAccum = [];
   if (w.received === leadingNumber) {
-    w.winner.forEach(name => {
-      const index = accum.findIndex(x => x.winner[0] === name);
+    w.winners.forEach(name => {
+      const index = accum.findIndex(x => x.winners[0] === name);
       if (index >= 0) {
         const item = accum[index];
         if (w.condition) {
@@ -54,16 +54,16 @@ const handleWinnersReducer = (accum, w) => {
       } else {
         newAccum.push(...accum);
         newAccum.push(Object.assign({}, w, {
-          winner: [name],
+          winners: [name],
           condition: w.condition || false
         }));
       }
     });
     return newAccum;
   } else if (w.received > leadingNumber) {
-    return w.winner.map(name => {
+    return w.winners.map(name => {
       return Object.assign({}, w, {
-        winner: [name],
+        winners: [name],
         condition: w.condition || false
       });
     });
@@ -75,7 +75,7 @@ const handleWinnersReducer = (accum, w) => {
 const simpleHandleWinnersReducer = (accum, w) => {
   if (w.received === accum.received) {
     return Object.assign({}, accum, {
-      winner: [...new Set([...accum.winner, ...w.winner])]
+      winners: [...new Set([...accum.winners, ...w.winners])]
     });
   } else if (w.received > accum.received) {
     return w;
@@ -97,7 +97,7 @@ const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
   // they are safe (pass on clear and free to winners list)
   const counts = ballots.reduce((accum, ballot) => {
     // Find first winner on a ballot
-    const winner = ballot.find(name => winnerObj.winner.indexOf(name) >= 0);
+    const winner = ballot.find(name => winnerObj.winners.indexOf(name) >= 0);
     if (!winner) {
       // If no winner, a losers ballot, continue on
       return accum;
@@ -120,25 +120,25 @@ const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
     return counts[name] >= highest;
   }));
 
-  return Object.assign({}, winnerObj, {winner: [...new Set(winners)]});
+  return Object.assign({}, winnerObj, {winners: [...new Set(winners)]});
 };
 
 // Handles "condition" property
 // todo: what about chained dependency? eg, trump on carson, carson on bush
 const ensureCanWin = (r, i, arr) => {
   const s = Object.assign({}, r, {
-    winner: r.winner.filter(x => {
+    winners: r.winners.filter(x => {
       return (
         !r.condition || !r.condition.length ||
         r.condition
           // todo: is this still needed? have i shifted to one winner per
           // obj. Is this shift complete?
           .filter(y => y.candidate.indexOf(x) >= 0)
-          .some(y => arr.filter(z => z.winner.indexOf(y.onlyIf) >= 0).length)
+          .some(y => arr.filter(z => z.winners.indexOf(y.onlyIf) >= 0).length)
       );
     })
   });
-  if (!s.winner.length) {
+  if (!s.winners.length) {
     return void 0;
   }
   delete s.condition;
@@ -172,7 +172,7 @@ const getWinner = (ballots) => {
   ) {
     return {
       success: true,
-      winner: leader.name,
+      winners: leader.name,
       received: leader.count
     };
   }
@@ -186,7 +186,7 @@ const getWinner = (ballots) => {
       if (leader.count === ballots.length / 2) {
         winners.push({
           success: true,
-          winner: leader.name,
+          winners: leader.name,
           received: leader.count
         });
       }
@@ -211,7 +211,7 @@ const getWinner = (ballots) => {
             ...ballots.slice(index + 1)
           ]);
           maybeWinner.condition = [{
-            candidate: maybeWinner.winner,
+            candidate: maybeWinner.winners,
             onlyIf: ballot[0],
           }];
           winners.push(maybeWinner);
@@ -232,7 +232,7 @@ const getWinner = (ballots) => {
     }
     return {
       success: true,
-      winner: leader.name,
+      winners: leader.name,
       received: leader.count
     };
   }
@@ -242,7 +242,7 @@ const main = (ballots) => {
   let result = getWinner(ballots);
   result = ensureOnlyTrueWinnersGivenTies(result, ballots);
   result.total = ballots.length;
-  result.winner = result.winner.slice().sort();
+  result.winners = result.winners.slice().sort();
   if (result.success) {
     result.percentage = +(result.received / result.total * 100).toFixed(2);
   }
