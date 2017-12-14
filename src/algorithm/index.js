@@ -12,15 +12,15 @@ const getLeadersFromCounts = (counts) => {
   return Object.keys(counts).reduce((accum, name) => {
     const count = counts[name];
     if (count > (accum.count || -Infinity)) {
-      return { name: [name], count };
+      return { names: [name], count };
     } else if (count === accum.count) {
-      return { name: [...accum.name, name], count };
+      return { names: [...accum.names, name], count };
     }
     return accum;
   }, {});
 };
 
-// Returns leader object with winner(s) in leader.name array
+// Returns leader object with winner(s) in leader.names array
 // If there is more than one name, it was a tie, in the
 // strict (literal, traditional) sense
 const getLeader = (ballots) => {
@@ -33,8 +33,8 @@ const handleWinnersReducer = (accum, w) => {
   const leadingNumber = accum.length ? accum[0].received || 0 : 0;
   let newAccum = [];
   if (w.received === leadingNumber) {
-    w.winners.forEach(name => {
-      const index = accum.findIndex(x => x.winners[0] === name);
+    w.names.forEach(name => {
+      const index = accum.findIndex(x => x.names[0] === name);
       if (index >= 0) {
         const item = accum[index];
         if (w.condition) {
@@ -54,16 +54,16 @@ const handleWinnersReducer = (accum, w) => {
       } else {
         newAccum.push(...accum);
         newAccum.push(Object.assign({}, w, {
-          winners: [name],
+          names: [name],
           condition: w.condition || false
         }));
       }
     });
     return newAccum;
   } else if (w.received > leadingNumber) {
-    return w.winners.map(name => {
+    return w.names.map(name => {
       return Object.assign({}, w, {
-        winners: [name],
+        names: [name],
         condition: w.condition || false
       });
     });
@@ -75,7 +75,7 @@ const handleWinnersReducer = (accum, w) => {
 const simpleHandleWinnersReducer = (accum, w) => {
   if (w.received === accum.received) {
     return Object.assign({}, accum, {
-      winners: [...new Set([...accum.winners, ...w.winners])]
+      names: [...new Set([...accum.names, ...w.names])]
     });
   } else if (w.received > accum.received) {
     return w;
@@ -97,7 +97,7 @@ const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
   // they are safe (pass on clear and free to winners list)
   const counts = ballots.reduce((accum, ballot) => {
     // Find first winner on a ballot
-    const winner = ballot.find(name => winnerObj.winners.indexOf(name) >= 0);
+    const winner = ballot.find(name => winnerObj.names.indexOf(name) >= 0);
     if (!winner) {
       // If no winner, a losers ballot, continue on
       return accum;
@@ -112,7 +112,7 @@ const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
   // After that, whoever has (or is tied with) the most first place votes
   // is added
   const highest = Object.keys(counts).reduce((high, name) => {
-    return (high > counts[name] || counts[name] === winnerObj.received)
+    return high > counts[name] || counts[name] === winnerObj.received
       ? high
       : counts[name];
   }, 0);
@@ -120,35 +120,34 @@ const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
     return counts[name] >= highest;
   }));
 
-  return Object.assign({}, winnerObj, {winners: [...new Set(winners)]});
+  return Object.assign({}, winnerObj, {names: [...new Set(winners)]});
 };
 
 // Handles "condition" property
 // todo: what about chained dependency? eg, trump on carson, carson on bush
 const ensureCanWin = (r, i, arr) => {
   const s = Object.assign({}, r, {
-    winners: r.winners.filter(x => {
+    names: r.names.filter(x => {
       return (
         !r.condition || !r.condition.length ||
         r.condition
           // todo: is this still needed? have i shifted to one winner per
           // obj. Is this shift complete?
           .filter(y => y.candidate.indexOf(x) >= 0)
-          .some(y => arr.filter(z => z.winners.indexOf(y.onlyIf) >= 0).length)
+          .some(y => arr.filter(z => z.names.indexOf(y.onlyIf) >= 0).length)
       );
     })
   });
-  if (!s.winners.length) {
+  if (!s.names.length) {
     return void 0;
   }
   delete s.condition;
   return s;
 };
 
-const getTrueWinnerObjFromArrayOfWinnerObjs = (arrayOfWinnerObjs, ballots) => {
-  const rawWinnerObjs = arrayOfWinnerObjs.reduce(handleWinnersReducer, []);
-  const winnerObjs = rawWinnerObjs.map(ensureCanWin).filter(Boolean);
-  return winnerObjs;
+const getTrueWinners = (winnerObjs) => {
+  const reducedWinnerObjs = winnerObjs.reduce(handleWinnersReducer, []);
+  return reducedWinnerObjs.map(ensureCanWin).filter(Boolean);
 };
 
 
@@ -172,28 +171,28 @@ const getWinner = (ballots) => {
   ) {
     return {
       success: true,
-      winners: leader.name,
+      names: leader.names,
       received: leader.count
     };
   }
 
   // If no winner, recursively traverse to seek one
   else {
-    const winner = ballots.map((ballot, index) => {
-      const winners = [];
+    const winners = ballots.map((ballot, index) => {
+      const iterationWinners = [];
       // If current state has a tie, return it as part of the finding process
-      // why not `leader.count === ballots.length / leader.name.length` ?
+      // why not `leader.count === ballots.length / leader.names.length` ?
       if (leader.count === ballots.length / 2) {
-        winners.push({
+        iterationWinners.push({
           success: true,
-          winners: leader.name,
+          names: leader.names,
           received: leader.count
         });
       }
       if (ballot.length !== 1) {
         // Current leader is not at top of ballot's names
-        if (leader.name.indexOf(ballot[0]) === -1) {
-          winners.push(getWinner([
+        if (leader.names.indexOf(ballot[0]) === -1) {
+          iterationWinners.push(getWinner([
             ...ballots.slice(0, index),
             ballot.slice(1),
             ...ballots.slice(index + 1)
@@ -201,38 +200,34 @@ const getWinner = (ballots) => {
         // Current leader is at top, but a tied leader is also under it
         // Allow fallbacks to be considered (but never at cost to the candidate)
         // to protect against splitting the vote
-        } else if (ballot.slice(1).some(n => leader.name.indexOf(n) >= 0)) {
-                // new Set([...ballot.slice(1), ...leader.name]).size !== [...ballots.slice(1), ...leader.name].length
-                // leader.name.length === ballots.length
+        } else if (ballot.slice(1).some(n => leader.names.indexOf(n) >= 0)) {
+                // new Set([...ballot.slice(1), ...leader.names]).size !== [...ballots.slice(1), ...leader.names].length
+                // leader.names.length === ballots.length
 
           const maybeWinner = getWinner([
             ...ballots.slice(0, index),
-            ballot.slice(1).filter(n => leader.name.indexOf(n) >= 0),
+            ballot.slice(1).filter(n => leader.names.indexOf(n) >= 0),
             ...ballots.slice(index + 1)
           ]);
           maybeWinner.condition = [{
-            candidate: maybeWinner.winners,
+            candidate: maybeWinner.names,
             onlyIf: ballot[0],
           }];
-          winners.push(maybeWinner);
+          iterationWinners.push(maybeWinner);
         }
       }
-
-      // Don't think I need getTrueWinnerObjFromArrayOfWinnerObjs since I think all ties
-      // will be "strict"/"traditional" at this point and too early for condition
-      // return winners.length > 0 && getTrueWinnerObjFromArrayOfWinnerObjs(winners, ballots);
-      return winners.length > 0 && winners.reduce(simpleHandleWinnersReducer);
+      return iterationWinners.length > 0 && iterationWinners.reduce(simpleHandleWinnersReducer);
     }).filter(a => !!a);
 
-    if (winner.length > 0) {
-      const maybeWinners = getTrueWinnerObjFromArrayOfWinnerObjs(winner, ballots);
-      if (maybeWinners.length) {
-        return maybeWinners.reduce(simpleHandleWinnersReducer);
+    if (winners.length > 0) {
+      const validatedWinners = getTrueWinners(winners);
+      if (validatedWinners.length) {
+        return validatedWinners.reduce(simpleHandleWinnersReducer);
       }
     }
     return {
       success: true,
-      winners: leader.name,
+      names: leader.names,
       received: leader.count
     };
   }
@@ -242,7 +237,7 @@ const main = (ballots) => {
   let result = getWinner(ballots);
   result = ensureOnlyTrueWinnersGivenTies(result, ballots);
   result.total = ballots.length;
-  result.winners = result.winners.slice().sort();
+  result.names = result.names.slice().sort();
   if (result.success) {
     result.percentage = +(result.received / result.total * 100).toFixed(2);
   }

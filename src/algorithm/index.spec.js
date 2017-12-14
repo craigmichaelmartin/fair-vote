@@ -10,7 +10,7 @@ describe('Ties:', () => {
         ['cruz'],
       ])).toEqual({
         success: true,
-        winners: ['cruz', 'rubio'],
+        names: ['cruz', 'rubio'],
         received: 1,
         total: 2,
         percentage: 50.00
@@ -23,7 +23,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'cruz', 'rubio'],
+        names: ['clinton', 'cruz', 'rubio'],
         received: 1,
         total: 3,
         percentage: 33.33
@@ -39,7 +39,7 @@ describe('Ties:', () => {
         ['clinton', 'bush']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'cruz', 'rubio'],
+        names: ['clinton', 'cruz', 'rubio'],
         received: 1,
         total: 3,
         percentage: 33.33
@@ -58,7 +58,7 @@ describe('Ties:', () => {
         ['clinton', 'cruz']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'cruz', 'rubio'],
+        names: ['clinton', 'cruz', 'rubio'],
         received: 1,
         total: 3,
         percentage: 33.33
@@ -87,7 +87,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['cruz', 'rubio'],
+        names: ['cruz', 'rubio'],
         received: 2,
         total: 3,
         percentage: 66.67
@@ -103,7 +103,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'cruz', 'rubio'],
+        names: ['clinton', 'cruz', 'rubio'],
         received: 2,
         total: 4,
         percentage: 50.00
@@ -121,7 +121,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'rubio'],
+        names: ['clinton', 'rubio'],
         received: 3,
         total: 6,
         percentage: 50.00
@@ -138,7 +138,7 @@ describe('Ties:', () => {
         ['sanders', 'clinton']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'rubio'],
+        names: ['clinton', 'rubio'],
         received: 3,
         total: 6,
         percentage: 50.00
@@ -155,7 +155,7 @@ describe('Ties:', () => {
         ['clinton', 'cruz']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'rubio'],
+        names: ['clinton', 'rubio'],
         received: 3,
         total: 6,
         percentage: 50.00
@@ -172,7 +172,7 @@ describe('Ties:', () => {
         ['clinton', 'rubio']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'rubio'],
+        names: ['clinton', 'rubio'],
         received: 3,
         total: 6,
         percentage: 50.00
@@ -186,7 +186,7 @@ describe('Ties:', () => {
         ['clinton', 'rubio'],
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'cruz', 'rubio'],
+        names: ['clinton', 'cruz', 'rubio'],
         received: 2,
         total: 3,
         percentage: 66.67
@@ -205,7 +205,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'rubio'],
+        names: ['clinton', 'rubio'],
         received: 2,
         total: 4,
         percentage: 50.00
@@ -225,7 +225,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['cruz', 'rubio'],
+        names: ['cruz', 'rubio'],
         received: 2,
         total: 5,
         percentage: 40.00
@@ -243,7 +243,7 @@ describe('Ties:', () => {
         ['bush'],
       ])).toEqual({
         success: true,
-        winners: ['rubio', 'trump'],
+        names: ['rubio', 'trump'],
         received: 3,
         total: 7,
         percentage: 42.86
@@ -261,7 +261,7 @@ describe('Ties:', () => {
         ['bush'],
       ])).toEqual({
         success: true,
-        winners: ['rubio', 'trump'],
+        names: ['rubio', 'trump'],
         received: 3,
         total: 7,
         percentage: 42.86
@@ -280,7 +280,7 @@ describe('Ties:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['clinton', 'rubio'],
+        names: ['clinton', 'rubio'],
         received: 2,
         total: 4,
         percentage: 50.00
@@ -300,7 +300,7 @@ describe('Winning:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['rubio'],
+        names: ['rubio'],
         received: 2,
         total: 5,
         percentage: 40.00
@@ -318,7 +318,7 @@ describe('Winning:', () => {
         ['clinton']
       ])).toEqual({
         success: true,
-        winners: ['rubio'],
+        names: ['rubio'],
         received: 3,
         total: 5,
         percentage: 60.00
@@ -340,7 +340,7 @@ describe('Winning:', () => {
           ['trump']
       ])).toEqual({
         success: true,
-        winners: ['rubio'],
+        names: ['rubio'],
         received: 5,
         total: 9,
         percentage: 55.56
@@ -360,7 +360,7 @@ describe('Winning:', () => {
         ['kasich', 'cruz']
       ])).toEqual({
         success: true,
-        winners: ['kasich'],
+        names: ['kasich'],
         received: 3,
         total: 5,
         percentage: 60.00
@@ -384,7 +384,7 @@ describe('Winning:', () => {
         ['kasich', 'rubio', 'bush']
       ])).toEqual({
         success: true,
-        winners: ['kasich'],
+        names: ['kasich'],
         received: 6,
         total: 11,
         percentage: 54.55
@@ -405,7 +405,7 @@ describe('Winning:', () => {
         ['bush']
       ])).toEqual({
         success: true,
-        winners: ['kasich'],
+        names: ['kasich'],
         received: 3,
         total: 7,
         percentage: 42.86
@@ -423,7 +423,7 @@ describe('Winning:', () => {
         ['bush'],
       ])).toEqual({
         success: true,
-        winners: ['kasich'],
+        names: ['kasich'],
         received: 3,
         total: 6,
         percentage: 50.00
@@ -448,7 +448,7 @@ describe('Winning:', () => {
         ['kasich', 'rubio', 'bush']
       ])).toEqual({
         success: true,
-        winners: ['kasich'],
+        names: ['kasich'],
         received: 4,
         total: 9,
         percentage: 44.44
@@ -472,7 +472,7 @@ describe('Winning:', () => {
         ['carson', 'trump']
       ])).toEqual({
         success: true,
-        winners: ['trump'],
+        names: ['trump'],
         received: 6,
         total: 11,
         percentage: 54.55
@@ -495,7 +495,7 @@ describe('Winning:', () => {
         ['carson', 'trump']
       ])).toEqual({
         success: true,
-        winners: ['trump'],
+        names: ['trump'],
         received: 4,
         total: 6,
         percentage: 66.67
@@ -517,7 +517,7 @@ describe('Winning:', () => {
         ['carson', 'trump']
       ])).toEqual({
         success: true,
-        winners: ['trump'],
+        names: ['trump'],
         received: 6,
         total: 11,
         percentage: 54.55
@@ -550,7 +550,7 @@ describe('Winning:', () => {
         ['carson', 'trump']
       ])).toEqual({
         success: true,
-        winners: ['trump'],
+        names: ['trump'],
         received: 6,
         total: 11,
         percentage: 54.55
@@ -576,7 +576,7 @@ describe('Winning:', () => {
         ['carson']
       ])).toEqual({
         success: true,
-        winners: ['rubio', 'trump'],
+        names: ['rubio', 'trump'],
         received: 3,
         total: 8,
         percentage: 37.50
@@ -636,11 +636,11 @@ describe('Winning:', () => {
         ['carson', 'trump']
       ])).toEqual({
         success: true,
-        winners: ['rubio', 'trump'],
+        names: ['rubio', 'trump'],
         received: 4,
         total: 8,
         percentage: 50.00
-        // winners: ['carson'],
+        // names: ['carson'],
         // received: 5,
         // total: 8,
         // percentage: 62.50
