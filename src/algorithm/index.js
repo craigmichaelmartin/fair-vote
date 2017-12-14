@@ -30,12 +30,99 @@ const getLeader = (ballots) => {
   // return getLeadersFromCounts(countsOfWinners);
 };
 
-// Consolates many winner objects into one,
+// Consolates many winner objects into any array of as few as possible
 const handleWinnersReducer = (accum, w) => {
+  // if (w.received === accum.received) {
+  //   if (w.received.condition === void 0 && accum.received.condition !== void 0) {
+  //     return w;
+  //   } else if (w.received.condition !== void 0 && accum.received.condition === void 0) {
+  //     return accum;
+  //   } else if (w.received.condition === void 0 && accum.received.condition === void 0) {
+  //     return Object.assign({}, accum, {
+  //       winner: [...new Set([...accum.winner, ...w.winner])]
+  //     });
+  //   } else {
+  //     return Object.assign({}, accum, {
+  //       winner: [...new Set([...accum.winner, ...w.winner])],
+  //       condition: [...accum.condition, ...w.condition]
+  //     });
+  //   }
+  // }
+
+  // OR,
+  // if (w.received === accum.received) {
+  //   return Object.assign({}, accum, {
+  //     winner: [...new Set([...accum.winner, ...w.winner])],
+  //     condition: w.condition && w.condition.length
+  //       ? [...(accum.condition || []), ...w.condition]
+  //       : void 0
+  //   });
+  // }
+
+  // debugger;
+  const leadingNumber = accum.length ? accum[0].received || 0 : 0;
+  let newAccum = [];
+  if (w.received === leadingNumber) {
+    w.winner.forEach(name => {
+      const index = accum.findIndex(x => x.winner[0] === name);
+      if (index >= 0) {
+        const item = accum[index];
+        if (w.condition) {
+          if (item.condition === false) {
+            newAccum.push(item);
+          } else {
+            newAccum.push(Object.assign({}, item, {
+              condition: [...new Set([...(item.condition || []), ...w.condition])]
+            }));
+          }
+        } else {
+          newAccum.push(Object.assign({}, item, {
+            condition: false
+          }));
+        }
+        newAccum.push(...accum.filter((x, i) => i !== index));
+      } else {
+        newAccum.push(...accum);
+        newAccum.push(Object.assign({}, w, {
+          winner: [name],
+          condition: w.condition || false
+        }));
+      }
+    });
+    return newAccum;
+  } else if (w.received > leadingNumber) {
+    return w.winner.map(name => {
+      return Object.assign({}, w, {
+        winner: [name],
+        condition: w.condition || false
+      });
+    });
+  } else {
+    return accum;
+  }
+};
+
+// I think I need to return multiple winner objs up above,
+// rather than combining conditions.
+// I assumed, the simpler handlerWinnersReducer wouldn't
+// need any conditions logic so went to break it out,
+// but it appears like it does?
+// Wait, why did I think that? It's good on its own, i think...
+//
+// Or up above, if a candidate has no condition, void out the whole
+// condition concept (by setting to false or null) and then don't
+// add conditions for it if it is so set...
+// but what about two winners who tied, one of which has condition?
+// This makes me think i can't reduce to one winner obj, but to an array
+// (one for each candidate whose condition logic follows what I just
+// described.
+// Any that have no condition (or a false/null one) could then be
+// reduced into one if desired.
+
+const simpleHandleWinnersReducer = (accum, w) => {
   if (w.received === accum.received) {
     return Object.assign({}, accum, {
-      winner: [...new Set([...accum.winner, ...w.winner])],
-      condition: [...(accum.condition || []), ...(w.condition || [])]
+      winner: [...new Set([...accum.winner, ...w.winner])]
     });
   } else if (w.received > accum.received) {
     return w;
@@ -52,6 +139,7 @@ const handleWinnersReducer = (accum, w) => {
 // a, a, (b, c), (c, b) ==> a, b, c
 const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
   const winners = [];
+
   // If anyone is not behind another winning candidate at all,
   // they are safe (pass on clear and free to winners list)
   const counts = ballots.reduce((accum, ballot) => {
@@ -67,27 +155,38 @@ const ensureOnlyTrueWinnersGivenTies = (winnerObj, ballots) => {
   winners.push(...Object.keys(counts).filter(name => {
     return counts[name] >= winnerObj.received;
   }));
-  // If anyone has at least half the received votes, they get added
-  // todo: this logic is not good enough. needs to be smarter than just this
+
+  // After that, whoever has (or is tied with) the most first place votes
+  // is added
+  const highest = Object.keys(counts).reduce((high, name) => {
+    return (high > counts[name] || counts[name] === winnerObj.received)
+      ? high
+      : counts[name];
+  }, 0);
   winners.push(...Object.keys(counts).filter(name => {
-    return counts[name] >= (winnerObj.received / 2);
+    return counts[name] >= highest;
   }));
+
   return Object.assign({}, winnerObj, {winner: [...new Set(winners)]});
 };
 
 // Handles "condition" property
-const ensureCanWin = (r) => {
+// todo: what about chained dependency? eg, trump on carson, carson on bush
+const ensureCanWin = (r, i, arr) => {
   const s = Object.assign({}, r, {
     winner: r.winner.filter(x => {
       return (
         !r.condition || !r.condition.length ||
         r.condition
+          // todo: is this still needed? have i shifted to one winner per
+          // obj. Is this shift complete?
           .filter(y => y.candidate.indexOf(x) >= 0)
-          .some(y => r.winner.indexOf(y.onlyIf) >= 0)
+          .some(y => arr.filter(z => z.winner.indexOf(y.onlyIf) >= 0).length)
       );
     })
   });
   if (!s.winner.length) {
+    // console.log('WINNER NOT CHOSE:', r);
     return void 0;
     // debugger;
     // throw new Error('i think i need to recurse on this function if the winner couldnt have won, toss him out and go again?');
@@ -97,14 +196,17 @@ const ensureCanWin = (r) => {
 };
 
 const getTrueWinnerObjFromArrayOfWinnerObjs = (arrayOfWinnerObjs, ballots) => {
-  const rawWinnerObj = arrayOfWinnerObjs.reduce(handleWinnersReducer);
-  const winnerObj = ensureCanWin(rawWinnerObj);
-  return winnerObj;
+  const rawWinnerObjs = arrayOfWinnerObjs.reduce(handleWinnersReducer, []);
+  const winnerObjs = rawWinnerObjs.map(ensureCanWin).filter(Boolean);
+  if (!winnerObjs.length) {
+    // console.log('winner objs', arrayOfWinnerObjs.map(x => JSON.stringify(x)));
+    // console.log('ballots', ballots);
+  }
+  return winnerObjs;
 };
 
 
 const getWinner = (ballots) => {
-  debugger;
 
   const leader = getLeader(ballots);
 
@@ -131,7 +233,10 @@ const getWinner = (ballots) => {
 
   // If no winner, recursively traverse to seek one
   else {
+    // debugger;
+    // console.log('--------------------------------------------------------');
     const winner = ballots.map((ballot, index) => {
+    // debugger;
       const winners = [];
       // If current state has a tie, return it as part of the finding process
       // why not `leader.count === ballots.length / leader.name.length` ?
@@ -166,21 +271,20 @@ const getWinner = (ballots) => {
             candidate: maybeWinner.winner,
             onlyIf: ballot[0],
           }];
-          // Remove this "if" when "condition" is working
-          // if (maybeWinner.winner.indexOf(ballot[0]) >= 0) {
-            winners.push(maybeWinner);
-          // }
+          winners.push(maybeWinner);
         }
       }
+
       // Don't think I need getTrueWinnerObjFromArrayOfWinnerObjs since I think all ties
       // will be "strict"/"traditional" at this point and too early for condition
-      return winners.length > 0 && winners.reduce(handleWinnersReducer);
+      // return winners.length > 0 && getTrueWinnerObjFromArrayOfWinnerObjs(winners, ballots);
+      return winners.length > 0 && winners.reduce(simpleHandleWinnersReducer);
     }).filter(a => !!a);
 
     if (winner.length > 0) {
-      const maybeWinner = getTrueWinnerObjFromArrayOfWinnerObjs(winner, ballots);
-      if (maybeWinner) {
-        return maybeWinner;
+      const maybeWinners = getTrueWinnerObjFromArrayOfWinnerObjs(winner, ballots);
+      if (maybeWinners.length) {
+        return maybeWinners.reduce(simpleHandleWinnersReducer);
       }
       // Should I be recursing on the other winners here
       // before falling back to returning leader stats?
@@ -195,6 +299,8 @@ const getWinner = (ballots) => {
 
 const main = (ballots) => {
   let result = getWinner(ballots);
+  console.log('main result', result);
+  debugger;
   result = ensureOnlyTrueWinnersGivenTies(result, ballots);
   result.total = ballots.length;
   if (result.success) {

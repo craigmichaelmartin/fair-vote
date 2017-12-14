@@ -50,7 +50,7 @@ describe('Ties:', () => {
   describe('advanced sequence', () => {
     // THIS TEST AND THE NEXT TOGETHER SHOW LIMITS
 
-    // A fallback vote should cost your candidate their chance to win (tie)
+    // A fallback vote should not cost your candidate their chance to win (tie)
     test('1', () => {
       expect(getWinner([
         ['rubio'],
@@ -575,7 +575,8 @@ describe('Winning:', () => {
       carson   rubio   rubio   CARSON  CARSON  CARSON  rubio     trump
     */
     // Interestingly, Carson doesn't get the vote from the first person
-    test('1', () => {
+    // [['rubio', 'carson'], ['rubio'], ['rubio'], ['carson'], ['carson'], ['carson'], ['carson', 'rubio'], ['carson', 'trump']]
+    fit('1', () => {
       expect(getWinner([
         ['rubio', 'carson'],
         ['bush', 'rubio'],
