@@ -646,5 +646,45 @@ describe('Winning:', () => {
         // percentage: 62.50
       });
     });
+
+    test('2', () => {
+      expect(getWinner([
+        ['rubio', 'carson'],
+        ['bush', 'rubio'],
+        ['bush', 'rubio'],
+        ['trump', 'carson'],
+        ['trump', 'carson'],
+        ['trump', 'carson'],
+        ['carson', 'rubio'],
+        ['carson', 'trump'],
+        ['cruz', 'carson']
+      ])).toEqual({
+        success: true,
+        names: ['carson'],
+        received: 5, // todo seems like it should be more
+        total: 9,
+        percentage: 55.56
+      });
+    });
+
+    test('3', () => {
+      expect(getWinner([
+        ['rubio', 'carson'],
+        ['rubio'],
+        ['rubio'],
+        ['trump', 'carson'],
+        ['trump', 'carson'],
+        ['trump', 'carson'],
+        ['carson', 'rubio'],
+        ['carson'],
+        ['carson'],
+      ])).toEqual({
+        success: true,
+        names: ['carson'],
+        received: 5, // todo seems like it should be more
+        total: 9,
+        percentage: 55.56
+      });
+    });
   });
 });

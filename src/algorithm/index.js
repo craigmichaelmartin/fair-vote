@@ -167,10 +167,10 @@ const getWinner = ballots => {
                 ...ballots.slice(index + 1)
               ])
             );
+          } else if (intersection(ballot.slice(1), leader.names)) {
             // Current leader is at top, but a tied leader is also under it
             // Allow fallbacks to be considered (but never at cost to the candidate)
             // to protect against splitting the vote
-          } else if (intersection(ballot.slice(1), leader.names)) {
             const maybeWinner = getWinner([
               ...ballots.slice(0, index),
               ballot.slice(1).filter(n => leader.names.indexOf(n) >= 0),
