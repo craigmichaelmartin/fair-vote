@@ -1,0 +1,43 @@
+{
+  "name": "fair-vote",
+  "author": "Craig Martin",
+  "license": "MIT",
+  "version": "1.0.0",
+  "description": "A path forward for elections",
+  "main": "lib/algorithm/index.js",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-typescript": "^7.0.0-alpha.19"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-typescript": "^7.0.0-alpha.19",
+    "jest": "^21.2.1",
+    "prettier": "^1.9.2"
+  },
+  "scripts": {
+    "js:build": "babel src/algorithm/index.js --out-file lib/algorithm/index.js --source-maps",
+    "js:watch": "babel src/algorithm/index.js --watch --out-file lib/algorithm/index.js --source-maps",
+    "test": "npm run js:test",
+    "test:watch": "npm run js:test:watch",
+    "js:test:watch": "jest --watch",
+    "js:test": "jest",
+    "js:test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand --verbose",
+    "prettier": "prettier --write  \"src/**/*.js\" \"!src/**/*.spec.js\"",
+    "prettier-test": "prettier -l \"src/**/*.js\" \"!src/**/*.spec.js\""
+  },
+  "babel": {
+    "presets": [
+      "env"
+    ]
+  },
+  "prettier": {
+    "printWidth": 80,
+    "tabWidth": 2,
+    "singleQuote": true,
+    "trailingComma": "none"
+
+  }
+}
